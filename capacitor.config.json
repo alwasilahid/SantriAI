@@ -1,0 +1,16 @@
+
+{
+  "appId": "com.santriai.app",
+  "appName": "SantriAI",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "https"
+  },
+  "plugins": {
+    "Keyboard": {
+      "resize": "body",
+      "style": "dark",
+      "scrollToInput": true
+    }
+  }
+}

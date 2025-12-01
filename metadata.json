@@ -1,0 +1,9 @@
+{
+  "name": "SantriAI - Bedah Kitab Kuning",
+  "description": "A specialized translator for classical Islamic texts (Kitab Kuning) offering both Makna Gandul and Modern Indonesian translations. Features offline history and cloud sync via Supabase.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone",
+    "geolocation"
+  ]
+}
