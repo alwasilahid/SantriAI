@@ -45,7 +45,10 @@ const parseJsonSafely = (text: string) => {
 // --- KEY ROTATION LOGIC ---
 
 const getApiKeys = (): string[] => {
-  const envKey = process.env.API_KEY || "";
+  // Prioritize VITE_API_KEY for Vite/Client env, fallback to process.env.API_KEY
+  const envKey = (typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_API_KEY) 
+                 || process.env.API_KEY 
+                 || "";
   // Split by comma if user provided multiple keys like "Key1,Key2,Key3"
   return envKey.split(',').map(k => k.trim()).filter(k => k.length > 0);
 };
@@ -186,12 +189,14 @@ export const askReligiousQuery = async (topic: string, query: string): Promise<s
 };
 
 export const generateQuizQuestion = async (topic: string, difficulty: string): Promise<QuizQuestion> => {
-  // No caching for Quiz to ensure randomness, or cache with random seed key if needed.
-  // Generally quizzes should be random.
+  // Tambahkan random seed agar tidak terkena cache dan selalu generate soal baru
+  const seed = Math.floor(Math.random() * 100000) + Date.now();
+  
   const prompt = `
-    Buatlah 1 soal cerdas cermat agama Islam pilihan ganda.
+    Buatlah 1 soal cerdas cermat agama Islam pilihan ganda yang UNIK dan BERBEDA.
     Topik: ${topic}
     Tingkat Kesulitan: ${difficulty}
+    Seed Acak: ${seed}
 
     Format Output JSON (wajib):
     {
@@ -205,10 +210,14 @@ export const generateQuizQuestion = async (topic: string, difficulty: string): P
 };
 
 export const generateEssayQuestion = async (topic: string, difficulty: string): Promise<EssayQuestion> => {
+  // Tambahkan random seed agar tidak terkena cache
+  const seed = Math.floor(Math.random() * 100000) + Date.now();
+
   const prompt = `
-    Buatlah 1 soal tantangan/esai singkat agama Islam.
+    Buatlah 1 soal tantangan/esai singkat agama Islam yang UNIK.
     Topik: ${topic}
     Tingkat Kesulitan: ${difficulty}
+    Seed Acak: ${seed}
 
     Pilih jenis soal secara acak dari: TEBAK_TOKOH, SAMBUNG_AYAT, SEJARAH, atau HUKUM_FIQIH.
 
