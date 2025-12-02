@@ -33,7 +33,6 @@ const ADZAN_URL_SUBUH = "https://cdn.islamdownload.net/wp-content/uploads-by-id/
 // Khusus Imsak (Nada Alarm/Tarhim)
 const ADZAN_URL_IMSAK = "https://blog-static.mamikos.com/wp-content/uploads/2025/11/Nada-Alarm-12.mp3";
 // Khusus Terbit & Dhuha (Bunyi Notifikasi)
-// Note: Menggunakan Direct Link Google Drive agar bisa diputar audio tag
 const ADZAN_URL_SUNRISE = "https://drive.google.com/uc?export=download&id=10EW-zbnQ18WtFOME7m8l1IK8M7CEyJlw";
 
 // Indonesian Mapping for Hijri Months
@@ -130,7 +129,7 @@ const PrayerTimesScreen: React.FC = () => {
     setNotifications((prev: any) => ({ ...prev, [key]: !prev[key as keyof typeof prev] }));
   };
 
-  // --- DATA FETCHING ---
+  // --- DATA FETCHING (UPDATED TO USE SERVICE CACHE) ---
   const fetchData = async () => {
     setLoading(true);
     let lat = -6.2088; // Default Jakarta
@@ -144,6 +143,7 @@ const PrayerTimesScreen: React.FC = () => {
         lat = position.coords.latitude;
         lng = position.coords.longitude;
         
+        // Use cached service
         const city = await getCityName(lat, lng);
         setLocationName(city);
       } catch (e) {
@@ -152,17 +152,9 @@ const PrayerTimesScreen: React.FC = () => {
       }
     }
 
-    // Fetch with specific date
-    try {
-        const dateStr = `${date.getDate()}-${date.getMonth() + 1}-${date.getFullYear()}`;
-        const response = await fetch(
-          `https://api.aladhan.com/v1/timings/${dateStr}?latitude=${lat}&longitude=${lng}&method=20`
-        );
-        const json = await response.json();
-        if(json.code === 200) setPrayerData(json.data);
-    } catch(e) {
-        console.error(e);
-    }
+    // Use cached service
+    const data = await getPrayerTimes(lat, lng, date);
+    if (data) setPrayerData(data);
     
     setLoading(false);
   };
@@ -175,23 +167,26 @@ const PrayerTimesScreen: React.FC = () => {
   useEffect(() => {
     if (!prayerData) return;
 
+    // Helper to clean time string "04:30 (WIB)" -> "04:30"
+    const cleanTime = (t: string) => t.replace(/\s*\(.*?\)\s*/g, '').trim();
+
     const interval = setInterval(() => {
       const now = new Date();
       const currentTimeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
       const currentSeconds = now.getSeconds();
 
       const schedule = [
-        { key: 'Imsak', time: prayerData.timings.Imsak },
-        { key: 'Subuh', time: prayerData.timings.Fajr },
-        { key: 'Terbit', time: prayerData.timings.Sunrise },
-        { key: 'Zuhur', time: prayerData.timings.Dhuhr },
-        { key: 'Ashar', time: prayerData.timings.Asr },
-        { key: 'Maghrib', time: prayerData.timings.Maghrib },
-        { key: 'Isya', time: prayerData.timings.Isha },
+        { key: 'Imsak', time: cleanTime(prayerData.timings.Imsak) },
+        { key: 'Subuh', time: cleanTime(prayerData.timings.Fajr) },
+        { key: 'Terbit', time: cleanTime(prayerData.timings.Sunrise) },
+        { key: 'Zuhur', time: cleanTime(prayerData.timings.Dhuhr) },
+        { key: 'Ashar', time: cleanTime(prayerData.timings.Asr) },
+        { key: 'Maghrib', time: cleanTime(prayerData.timings.Maghrib) },
+        { key: 'Isya', time: cleanTime(prayerData.timings.Isha) },
       ];
 
       // Add Dhuha (approx 20m after sunrise)
-      const sunriseTime = prayerData.timings.Sunrise.split(' ')[0];
+      const sunriseTime = cleanTime(prayerData.timings.Sunrise);
       const [sH, sM] = sunriseTime.split(':').map(Number);
       const dhuhaDate = new Date();
       dhuhaDate.setHours(sH, sM + 20);
@@ -304,7 +299,7 @@ const PrayerTimesScreen: React.FC = () => {
   // Helper for Dhuha time
   const getDisplayTime = (timeStr: string, offset = 0) => {
     if (!timeStr) return '--:--';
-    const clean = timeStr.split(' ')[0];
+    const clean = timeStr.split(' ')[0]; // Basic clean for display
     if (offset === 0) return clean;
     
     const [h, m] = clean.split(':').map(Number);
