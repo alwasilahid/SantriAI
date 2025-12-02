@@ -161,7 +161,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ fontSize, history }) => {
       const diffM = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
       const diffS = Math.floor((diffMs % (1000 * 60)) / 1000);
 
-      // Removed extra spaces around colons
+      // Clean timer format
       setCountdown(`${diffH.toString().padStart(2, '0')}:${diffM.toString().padStart(2, '0')}:${diffS.toString().padStart(2, '0')}`);
 
     }, 1000);
@@ -203,7 +203,6 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ fontSize, history }) => {
                 { label: 'MAGHRIB', time: prayerData?.timings.Maghrib || '--:--' },
                 { label: 'ISYA', time: prayerData?.timings.Isha || '--:--' },
               ].map((p, i) => {
-                 // Clean display time
                  const displayTime = p.time.replace(/\s*\(.*?\)\s*/g, '');
                  const isNext = p.label === nextPrayer?.name;
                  
@@ -255,7 +254,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ fontSize, history }) => {
       <div className="px-4 pt-6">
         <div className="animate-in fade-in slide-in-from-left-4 duration-300">
           
-          {/* Input Trigger (Redirects to Input Screen) */}
+          {/* Input Trigger */}
           <button
              onClick={() => navigate('/input')}
              className="w-full bg-white dark:bg-slate-900 rounded-2xl p-4 border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between group hover:border-santri-green transition-all mb-6"
@@ -276,7 +275,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ fontSize, history }) => {
              </div>
           </button>
 
-            {/* FEATURE GRID (ICONS) */}
+            {/* FEATURE GRID */}
             <div className="mb-6 grid grid-cols-4 gap-4 animate-in fade-in slide-in-from-bottom-2 duration-500">
               {FEATURE_MENU.map((item, idx) => {
                 const Icon = item.icon;
@@ -293,7 +292,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ fontSize, history }) => {
               })}
             </div>
 
-          {/* HISTORY SECTION (Moved to Bottom) */}
+          {/* HISTORY SECTION */}
           <div ref={historyRef} className="mt-8 mb-8 border-t border-slate-100 dark:border-slate-800 pt-6">
             <h3 className="font-bold text-slate-800 dark:text-slate-200 text-lg mb-4 flex items-center gap-2">
               <HistoryIcon className="text-santri-green dark:text-santri-gold" /> 
