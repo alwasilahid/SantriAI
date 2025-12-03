@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { translateText, scanImage } from '../services/geminiService';
@@ -15,7 +14,8 @@ import {
   MicOff,
   SendHorizontal,
   Camera,
-  BookOpen
+  BookOpen,
+  Image as ImageIcon
 } from 'lucide-react';
 
 interface InputScreenProps {
@@ -45,16 +45,16 @@ interface KeyBtnProps {
 const KeyBtn: React.FC<KeyBtnProps> = ({ label, char, type = 'char', width = 'flex-1', onClick }) => {
   const content = label || char;
   
-  let bgClass = 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-[0_1px_2px_rgba(0,0,0,0.3)]';
-  if (type === 'action') bgClass = 'bg-slate-300 dark:bg-slate-600 text-slate-800 dark:text-white shadow-[0_1px_2px_rgba(0,0,0,0.2)]';
-  if (type === 'submit') bgClass = 'bg-blue-600 text-white shadow-[0_1px_2px_rgba(0,0,0,0.2)]';
-  if (type === 'space') bgClass = 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-[0_1px_2px_rgba(0,0,0,0.3)]';
+  let bgClass = 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-[0_1px_2px_rgba(0,0,0,0.3)] border-b-2 border-slate-200 dark:border-slate-900';
+  if (type === 'action') bgClass = 'bg-slate-300 dark:bg-slate-600 text-slate-800 dark:text-white shadow-[0_1px_2px_rgba(0,0,0,0.2)] border-b-2 border-slate-400 dark:border-slate-800';
+  if (type === 'submit') bgClass = 'bg-blue-600 text-white shadow-[0_1px_2px_rgba(0,0,0,0.2)] border-b-2 border-blue-800';
+  if (type === 'space') bgClass = 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-[0_1px_2px_rgba(0,0,0,0.3)] border-b-2 border-slate-200 dark:border-slate-900';
 
   return (
     <button 
       onClick={onClick}
       className={`
-        ${width} h-11 mx-0.5 rounded-lg font-medium text-xl flex items-center justify-center transition-all active:scale-95 active:bg-opacity-80
+        ${width} h-11 mx-0.5 rounded-lg font-bold text-xl flex items-center justify-center transition-all active:scale-95 active:bg-opacity-80
         ${bgClass}
         ${char ? 'font-arabic pb-1' : ''}
       `}
@@ -75,10 +75,12 @@ const InputScreen: React.FC<InputScreenProps> = ({ fontSize }) => {
   const [activeTab, setActiveTab] = useState<'arab' | 'indo'>('arab');
   const [isListening, setIsListening] = useState(false);
   const [keyboardMode, setKeyboardMode] = useState<'letters' | 'numbers'>('letters');
+  const [showCameraMenu, setShowCameraMenu] = useState(false);
   
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const recognitionRef = useRef<any>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const galleryInputRef = useRef<HTMLInputElement>(null);
 
   // Focus textarea when switching tabs
   useEffect(() => {
@@ -127,9 +129,21 @@ const InputScreen: React.FC<InputScreenProps> = ({ fontSize }) => {
     }
   };
 
-  const handleCameraClick = () => {
-    if (fileInputRef.current) {
-      fileInputRef.current.click();
+  const handleCameraIconClick = () => {
+    setShowCameraMenu(!showCameraMenu);
+  };
+
+  const handleTakePhoto = () => {
+    setShowCameraMenu(false);
+    if (cameraInputRef.current) {
+      cameraInputRef.current.click();
+    }
+  };
+
+  const handleChooseGallery = () => {
+    setShowCameraMenu(false);
+    if (galleryInputRef.current) {
+      galleryInputRef.current.click();
     }
   };
 
@@ -158,7 +172,7 @@ const InputScreen: React.FC<InputScreenProps> = ({ fontSize }) => {
         setIsOcrProcessing(false);
         alert("Gagal membaca file.");
       } finally {
-        event.target.value = '';
+        event.target.value = ''; // Reset input so same file can be selected again
       }
     }
   };
@@ -260,17 +274,17 @@ const InputScreen: React.FC<InputScreenProps> = ({ fontSize }) => {
        {/* Header */}
        <div className="bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800 p-4 flex items-center gap-4 shadow-sm relative z-20 shrink-0">
           <button onClick={handleBack} className="p-2 -ml-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-slate-600 dark:text-slate-300">
-             <ArrowLeft size={24} />
+             <ArrowLeft size={24} strokeWidth={3} />
           </button>
           <div className="flex-1">
              <h1 className="font-bold text-lg text-slate-800 dark:text-slate-100 flex items-center gap-2">
-                <Keyboard size={20} className="text-santri-green" />
+                <Keyboard size={24} strokeWidth={3} className="text-santri-green" />
                 Input Teks
              </h1>
              {/* Indikator Kamus Munawwir */}
              {activeTab === 'indo' && (
                 <div className="flex items-center gap-1.5 mt-0.5">
-                   <BookOpen size={10} className="text-santri-gold" />
+                   <BookOpen size={12} strokeWidth={3} className="text-santri-gold" />
                    <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">Gaya Terjemahan: Kamus Al-Munawwir</p>
                 </div>
              )}
@@ -315,45 +329,84 @@ const InputScreen: React.FC<InputScreenProps> = ({ fontSize }) => {
        </div>
 
        {/* Toolbar & Keyboard Container */}
-       <div className="bg-slate-100 dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 z-30 shrink-0 transition-all duration-300 flex flex-col">
+       <div className="bg-slate-100 dark:bg-slate-900 border-t-2 border-slate-200 dark:border-slate-800 z-30 shrink-0 transition-all duration-300 flex flex-col shadow-inner relative">
           
+          {/* Camera Menu Popup */}
+          {showCameraMenu && (
+            <>
+              <div className="absolute bottom-full left-4 mb-2 w-64 bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 z-50 overflow-hidden animate-in fade-in slide-in-from-bottom-2">
+                <button onClick={handleTakePhoto} className="w-full text-left p-4 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors flex items-center gap-4 border-b border-slate-100 dark:border-slate-700">
+                   <div className="w-10 h-10 rounded-xl bg-green-100 dark:bg-green-900/30 text-green-600 flex items-center justify-center shrink-0">
+                      <Camera size={20} strokeWidth={2.5} />
+                   </div>
+                   <div>
+                      <h4 className="font-bold text-slate-800 dark:text-slate-100 text-sm">Kamera</h4>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">Ambil foto baru</p>
+                   </div>
+                </button>
+                <button onClick={handleChooseGallery} className="w-full text-left p-4 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors flex items-center gap-4">
+                   <div className="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-900/30 text-blue-600 flex items-center justify-center shrink-0">
+                      <ImageIcon size={20} strokeWidth={2.5} />
+                   </div>
+                   <div>
+                      <h4 className="font-bold text-slate-800 dark:text-slate-100 text-sm">Galeri</h4>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">Pilih dari HP</p>
+                   </div>
+                </button>
+              </div>
+              {/* Overlay to close menu */}
+              <div className="fixed inset-0 z-40" onClick={() => setShowCameraMenu(false)}></div>
+            </>
+          )}
+
           {/* Action Bar */}
-          <div className="flex items-center gap-2 p-2 px-3 bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800">
-              <button onClick={toggleListening} className={`w-10 h-10 rounded-full flex items-center justify-center transition-all shrink-0 ${isListening ? 'bg-red-100 text-red-600 animate-pulse' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'}`}>
-                  {isListening ? <MicOff size={18} /> : <Mic size={18} />}
+          <div className="flex items-center gap-2 p-2 px-3 bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800 relative z-30">
+              <button onClick={toggleListening} className={`w-10 h-10 rounded-full flex items-center justify-center transition-all shrink-0 border border-slate-200 dark:border-slate-700 ${isListening ? 'bg-red-100 text-red-600 animate-pulse' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'}`}>
+                  {isListening ? <MicOff size={20} strokeWidth={3} /> : <Mic size={20} strokeWidth={3} />}
               </button>
 
-              <button 
-                onClick={handleCameraClick} 
-                disabled={isOcrProcessing}
-                className="w-10 h-10 rounded-full flex items-center justify-center transition-all shrink-0 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"
-              >
-                 <Camera size={18} />
-              </button>
-              <input type="file" ref={fileInputRef} accept="image/*" className="hidden" onChange={handleFileChange} />
-
-              {/* Tabs Switcher */}
-              <div className="flex-1 flex bg-slate-100 dark:bg-slate-800 rounded-full p-1 mx-2">
-                <button onClick={() => setActiveTab('arab')} className={`flex-1 py-1.5 rounded-full text-xs font-bold transition-all ${activeTab === 'arab' ? 'bg-white dark:bg-slate-700 shadow-sm text-santri-green dark:text-santri-gold' : 'text-slate-500 dark:text-slate-400'}`}>Arab</button>
-                <button onClick={() => setActiveTab('indo')} className={`flex-1 py-1.5 rounded-full text-xs font-bold transition-all ${activeTab === 'indo' ? 'bg-white dark:bg-slate-700 shadow-sm text-santri-green dark:text-santri-gold' : 'text-slate-500 dark:text-slate-400'}`}>Indonesia</button>
+              <div className="relative">
+                <button 
+                  onClick={handleCameraIconClick} 
+                  disabled={isOcrProcessing}
+                  className={`w-10 h-10 rounded-full flex items-center justify-center transition-all shrink-0 border border-slate-200 dark:border-slate-700 ${showCameraMenu ? 'bg-santri-green text-white border-santri-green' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'}`}
+                >
+                   <Camera size={20} strokeWidth={3} />
+                </button>
+                {/* Hidden Inputs */}
+                <input type="file" ref={cameraInputRef} accept="image/*" capture="environment" className="hidden" onChange={handleFileChange} />
+                <input type="file" ref={galleryInputRef} accept="image/*" className="hidden" onChange={handleFileChange} />
               </div>
 
-              <button onClick={handleTranslate} disabled={loading || !inputText.trim()} className={`w-10 h-10 rounded-full flex items-center justify-center transition-all shrink-0 ${loading || !inputText.trim() ? 'bg-slate-200 dark:bg-slate-800 text-slate-400' : 'bg-santri-green text-white hover:bg-green-700'}`}>
-                 {loading ? <Loader2 size={18} className="animate-spin" /> : <SendHorizontal size={18} />}
+              {/* Tabs Switcher */}
+              <div className="flex-1 flex bg-slate-100 dark:bg-slate-800 rounded-full p-1 mx-2 border border-slate-200 dark:border-slate-700">
+                <button onClick={() => setActiveTab('arab')} className={`flex-1 py-1.5 rounded-full text-xs font-bold transition-all ${activeTab === 'arab' ? 'bg-white dark:bg-slate-700 shadow-sm text-santri-green dark:text-santri-gold border border-slate-100 dark:border-slate-600' : 'text-slate-500 dark:text-slate-400'}`}>Arab</button>
+                <button onClick={() => setActiveTab('indo')} className={`flex-1 py-1.5 rounded-full text-xs font-bold transition-all ${activeTab === 'indo' ? 'bg-white dark:bg-slate-700 shadow-sm text-santri-green dark:text-santri-gold border border-slate-100 dark:border-slate-600' : 'text-slate-500 dark:text-slate-400'}`}>Indonesia</button>
+              </div>
+
+              <button onClick={handleTranslate} disabled={loading || !inputText.trim()} className={`w-10 h-10 rounded-full flex items-center justify-center transition-all shrink-0 ${loading || !inputText.trim() ? 'bg-slate-200 dark:bg-slate-800 text-slate-400' : 'bg-santri-green text-white hover:bg-green-700 shadow-lg shadow-green-200 dark:shadow-none'}`}>
+                 {loading ? <Loader2 size={20} className="animate-spin" /> : <SendHorizontal size={20} strokeWidth={3} />}
               </button>
           </div>
 
           {/* Virtual Arabic Keyboard */}
           {activeTab === 'arab' && (
              <div 
-               className="bg-[#cfd5da] dark:bg-[#1a1f26] p-1.5 select-none relative z-50 shadow-[0_-4px_10px_rgba(0,0,0,0.1)]"
+               className="bg-[#cfd5da] dark:bg-[#1a1f26] p-1.5 select-none relative z-20 shadow-[0_-4px_10px_rgba(0,0,0,0.1)]"
                style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}
              >
                
                {/* Harakat Row (Scrollable) */}
-               <div className="flex gap-1.5 mb-2 overflow-x-auto no-scrollbar py-1 px-1">
+               <div className="flex gap-1 mb-2 px-1">
                  {HARAKAT.map((char) => (
-                   <button key={char} onClick={() => insertChar(char)} className="min-w-[44px] h-10 bg-slate-300 dark:bg-slate-700 rounded-lg text-2xl font-arabic text-slate-800 dark:text-slate-200 active:bg-slate-400 transition-colors shadow-sm">{char}</button>
+                   <button 
+                     key={char} 
+                     onClick={() => insertChar(char)} 
+                     className="flex-1 h-12 bg-slate-300 dark:bg-slate-700 rounded-lg text-2xl font-arabic text-slate-800 dark:text-slate-200 active:bg-slate-400 transition-colors shadow-sm border-b-2 border-slate-400 dark:border-slate-900 flex items-center justify-center pt-2 leading-none"
+                   >
+                     {/* Combine with Tatweel for proper rendering position */}
+                     <span className="opacity-30">ـ</span>{char}
+                   </button>
                  ))}
                </div>
                
@@ -373,7 +426,7 @@ const InputScreen: React.FC<InputScreenProps> = ({ fontSize }) => {
                        <KeyBtn char="د" onClick={() => insertChar('د')} width="w-[9%]" />
                        <KeyBtn char="ذ" onClick={() => insertChar('ذ')} width="w-[9%]" />
                        {ROW_3.map(char => <KeyBtn key={char} char={char} onClick={() => insertChar(char)} />)}
-                       <KeyBtn label={<DeleteIcon size={20} />} type="action" width="w-[14%]" onClick={handleBackspace} />
+                       <KeyBtn label={<DeleteIcon size={20} strokeWidth={3} />} type="action" width="w-[14%]" onClick={handleBackspace} />
                     </div>
                  </div>
                )}
@@ -392,7 +445,7 @@ const InputScreen: React.FC<InputScreenProps> = ({ fontSize }) => {
                     {/* Symbols 2 & Backspace */}
                     <div className="flex gap-1">
                        {SYMBOLS_2.map(char => <KeyBtn key={char} char={char} onClick={() => insertChar(char)} />)}
-                       <KeyBtn label={<DeleteIcon size={20} />} type="action" width="w-[15%]" onClick={handleBackspace} />
+                       <KeyBtn label={<DeleteIcon size={20} strokeWidth={3} />} type="action" width="w-[15%]" onClick={handleBackspace} />
                     </div>
                  </div>
                )}
@@ -413,7 +466,7 @@ const InputScreen: React.FC<InputScreenProps> = ({ fontSize }) => {
                   <KeyBtn label="." char="." width="w-[10%]" onClick={() => insertChar('.')} />
                   
                   <KeyBtn 
-                    label={<CornerDownLeft size={20} />} 
+                    label={<CornerDownLeft size={20} strokeWidth={3} />} 
                     type="submit" 
                     width="w-[15%]" 
                     onClick={() => insertChar('\n')} 
