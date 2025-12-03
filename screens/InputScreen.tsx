@@ -15,7 +15,8 @@ import {
   SendHorizontal,
   Camera,
   BookOpen,
-  Image as ImageIcon
+  Image as ImageIcon,
+  X
 } from 'lucide-react';
 
 interface InputScreenProps {
@@ -77,9 +78,12 @@ const InputScreen: React.FC<InputScreenProps> = ({ fontSize }) => {
   const [keyboardMode, setKeyboardMode] = useState<'letters' | 'numbers'>('letters');
   const [showCameraMenu, setShowCameraMenu] = useState(false);
   
+  // Camera State
+  const [isCameraOpen, setIsCameraOpen] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const recognitionRef = useRef<any>(null);
-  const cameraInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
 
   // Focus textarea when switching tabs
@@ -133,11 +137,69 @@ const InputScreen: React.FC<InputScreenProps> = ({ fontSize }) => {
     setShowCameraMenu(!showCameraMenu);
   };
 
+  // Reusable Image Processor
+  const processImage = async (base64Data: string, mimeType: string) => {
+    setIsOcrProcessing(true);
+    try {
+      const extractedText = await scanImage(base64Data, mimeType);
+      setInputText(prev => prev + (prev ? '\n' : '') + extractedText);
+    } catch (e) {
+      console.error(e);
+      alert("Gagal memindai teks dari gambar.");
+    } finally {
+      setIsOcrProcessing(false);
+    }
+  };
+
+  // Camera Logic
+  const startCamera = async () => {
+    setIsCameraOpen(true);
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ 
+            video: { facingMode: 'environment' } 
+        });
+        // Short timeout to allow modal to render
+        setTimeout(() => {
+            if (videoRef.current) {
+                videoRef.current.srcObject = stream;
+            }
+        }, 100);
+    } catch (err) {
+        console.error("Camera error:", err);
+        alert("Gagal membuka kamera. Pastikan izin diberikan.");
+        setIsCameraOpen(false);
+    }
+  };
+
+  const stopCamera = () => {
+      if (videoRef.current && videoRef.current.srcObject) {
+          const stream = videoRef.current.srcObject as MediaStream;
+          stream.getTracks().forEach(track => track.stop());
+          videoRef.current.srcObject = null;
+      }
+      setIsCameraOpen(false);
+  };
+
+  const captureImage = () => {
+      if (videoRef.current) {
+          const canvas = document.createElement('canvas');
+          canvas.width = videoRef.current.videoWidth;
+          canvas.height = videoRef.current.videoHeight;
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+              ctx.drawImage(videoRef.current, 0, 0);
+              // Use JPEG with 0.8 quality
+              const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+              const base64Data = dataUrl.split(',')[1];
+              processImage(base64Data, 'image/jpeg');
+              stopCamera();
+          }
+      }
+  };
+
   const handleTakePhoto = () => {
     setShowCameraMenu(false);
-    if (cameraInputRef.current) {
-      cameraInputRef.current.click();
-    }
+    startCamera();
   };
 
   const handleChooseGallery = () => {
@@ -150,30 +212,19 @@ const InputScreen: React.FC<InputScreenProps> = ({ fontSize }) => {
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      setIsOcrProcessing(true);
-      try {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = async () => {
-          try {
-            const base64Str = reader.result as string;
-            const base64Data = base64Str.split(',')[1];
-            const extractedText = await scanImage(base64Data, file.type);
-            
-            setInputText(prev => prev + (prev ? '\n' : '') + extractedText);
-          } catch (e) {
-            console.error(e);
-            alert("Gagal memindai teks dari gambar.");
-          } finally {
-            setIsOcrProcessing(false);
-          }
-        };
-      } catch (e) {
-        setIsOcrProcessing(false);
-        alert("Gagal membaca file.");
-      } finally {
-        event.target.value = ''; // Reset input so same file can be selected again
-      }
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = async () => {
+        try {
+          const base64Str = reader.result as string;
+          const base64Data = base64Str.split(',')[1];
+          processImage(base64Data, file.type);
+        } catch (e) {
+          console.error(e);
+          alert("Gagal membaca file.");
+        }
+      };
+      event.target.value = ''; // Reset input so same file can be selected again
     }
   };
 
@@ -271,6 +322,42 @@ const InputScreen: React.FC<InputScreenProps> = ({ fontSize }) => {
   return (
     <div className="bg-slate-50 dark:bg-slate-950 flex flex-col overflow-hidden h-[100dvh]">
        
+       {/* Camera Overlay */}
+       {isCameraOpen && (
+           <div className="fixed inset-0 z-50 bg-black flex flex-col animate-in fade-in">
+               <div className="relative flex-1 bg-black flex items-center justify-center overflow-hidden">
+                   <video 
+                       ref={videoRef} 
+                       autoPlay 
+                       playsInline 
+                       className="w-full h-full object-cover"
+                   />
+                   {/* Capture Guide/Frame */}
+                   <div className="absolute inset-0 border-[50px] border-black/50 pointer-events-none">
+                       <div className="w-full h-full border-2 border-white/50 relative">
+                           <div className="absolute top-0 left-0 w-4 h-4 border-t-4 border-l-4 border-green-500"></div>
+                           <div className="absolute top-0 right-0 w-4 h-4 border-t-4 border-r-4 border-green-500"></div>
+                           <div className="absolute bottom-0 left-0 w-4 h-4 border-b-4 border-l-4 border-green-500"></div>
+                           <div className="absolute bottom-0 right-0 w-4 h-4 border-b-4 border-r-4 border-green-500"></div>
+                       </div>
+                   </div>
+               </div>
+               
+               <div className="h-28 bg-black flex items-center justify-around pb-6 pt-2">
+                   <button onClick={stopCamera} className="p-4 rounded-full bg-white/20 text-white hover:bg-white/30 transition-colors">
+                       <X size={24} />
+                   </button>
+                   <button 
+                     onClick={captureImage} 
+                     className="w-16 h-16 rounded-full bg-white border-4 border-gray-300 flex items-center justify-center active:scale-95 transition-transform"
+                   >
+                       <div className="w-14 h-14 rounded-full bg-white border-2 border-black"></div>
+                   </button>
+                   <div className="w-14"></div> {/* Spacer for balance */}
+               </div>
+           </div>
+       )}
+
        {/* Header */}
        <div className="bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800 p-4 flex items-center gap-4 shadow-sm relative z-20 shrink-0">
           <button onClick={handleBack} className="p-2 -ml-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-slate-600 dark:text-slate-300">
@@ -373,8 +460,7 @@ const InputScreen: React.FC<InputScreenProps> = ({ fontSize }) => {
                 >
                    <Camera size={20} strokeWidth={3} />
                 </button>
-                {/* Hidden Inputs */}
-                <input type="file" ref={cameraInputRef} accept="image/*" capture="environment" className="hidden" onChange={handleFileChange} />
+                {/* Hidden Input for Gallery */}
                 <input type="file" ref={galleryInputRef} accept="image/*" className="hidden" onChange={handleFileChange} />
               </div>
 
