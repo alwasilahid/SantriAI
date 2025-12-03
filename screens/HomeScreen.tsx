@@ -42,6 +42,7 @@ const FEATURE_MENU = [
   { icon: Brain, label: "Cerdas Cermat", color: "bg-purple-100 text-purple-600", path: "/quiz" },
   { icon: GraduationCap, label: "Latihan Baca", color: "bg-green-100 text-green-600", path: "/latihan" },
   { icon: Compass, label: "Arah Kiblat", color: "bg-blue-100 text-blue-600", path: "/qibla" },
+  { icon: Activity, label: "Tasbih", color: "bg-teal-100 text-teal-600", path: "/tasbih" },
 ];
 
 // Expanded list for Search
