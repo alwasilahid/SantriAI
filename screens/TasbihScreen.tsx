@@ -93,8 +93,20 @@ const WIRID_PRESETS: WiridData[] = [
 const TasbihScreen: React.FC = () => {
   const navigate = useNavigate();
   
+  // Load Session Logic
+  const getSessionData = () => {
+    try {
+      const saved = localStorage.getItem('santriai_tasbih_session');
+      return saved ? JSON.parse(saved) : null;
+    } catch (e) {
+      return null;
+    }
+  };
+
+  const sessionData = getSessionData();
+
   // State
-  const [currentWirid, setCurrentWirid] = useState<WiridData>(WIRID_PRESETS[0]);
+  const [currentWirid, setCurrentWirid] = useState<WiridData>(sessionData?.currentWirid || WIRID_PRESETS[0]);
   const [customWirids, setCustomWirids] = useState<WiridData[]>(() => {
     const saved = localStorage.getItem('santriai_custom_wirids');
     return saved ? JSON.parse(saved) : [];
@@ -105,8 +117,9 @@ const TasbihScreen: React.FC = () => {
     return saved ? JSON.parse(saved) : [];
   });
 
-  const [count, setCount] = useState(0);
-  const [target, setTarget] = useState(33);
+  const [count, setCount] = useState(sessionData?.count || 0);
+  const [target, setTarget] = useState(sessionData?.target || 33);
+  
   const [vibration, setVibration] = useState(true);
   const [sound, setSound] = useState(false); 
   const [showSelector, setShowSelector] = useState(false);
@@ -123,6 +136,16 @@ const TasbihScreen: React.FC = () => {
     mean: '',
     target: '33'
   });
+
+  // Persist Current Session (Count, Target, Wirid)
+  useEffect(() => {
+    const session = {
+      count,
+      target,
+      currentWirid
+    };
+    localStorage.setItem('santriai_tasbih_session', JSON.stringify(session));
+  }, [count, target, currentWirid]);
 
   // Persist Custom Wirids
   useEffect(() => {
