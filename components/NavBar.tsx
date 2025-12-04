@@ -25,9 +25,6 @@ const NavBar: React.FC = () => {
     </button>
   );
 
-  return (
-    
-  );
 };
 
 export default NavBar;
