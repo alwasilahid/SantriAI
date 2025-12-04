@@ -1,6 +1,6 @@
-
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import Toast from '../components/Toast';
 import { 
   ArrowLeft, 
   Copy, 
@@ -39,6 +39,11 @@ const ResultDetailScreen: React.FC<ResultDetailProps> = ({ fontSize }) => {
   const { id, label, sub, content, className } = location.state || {};
 
   const [copied, setCopied] = useState(false);
+  const isSharing = useRef(false);
+
+  // Toast State
+  const [toast, setToast] = useState({ show: false, message: '' });
+  const showToast = (message: string) => setToast({ show: true, message });
 
   if (!content) {
     return (
@@ -65,6 +70,9 @@ const ResultDetailScreen: React.FC<ResultDetailProps> = ({ fontSize }) => {
   };
 
   const handleShare = async () => {
+    if (isSharing.current) return;
+    isSharing.current = true;
+
     if (navigator.share) {
       try {
         await navigator.share({
@@ -74,17 +82,21 @@ const ResultDetailScreen: React.FC<ResultDetailProps> = ({ fontSize }) => {
       } catch (err: any) {
         if (err.name !== 'AbortError') {
            handleCopy();
-           alert('Teks disalin ke clipboard.');
+           showToast('Teks disalin ke clipboard.');
         }
+      } finally {
+        isSharing.current = false;
       }
     } else {
       handleCopy();
-      alert('Teks disalin ke clipboard.');
+      showToast('Teks disalin ke clipboard.');
+      isSharing.current = false;
     }
   };
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 pb-24 font-sans flex flex-col">
+      <Toast message={toast.message} isVisible={toast.show} onClose={() => setToast(prev => ({ ...prev, show: false }))} />
       
       {/* Header */}
       <div className="sticky top-0 z-30 bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800 shadow-sm px-4 py-3 flex items-center justify-between transition-colors">
@@ -117,7 +129,7 @@ const ResultDetailScreen: React.FC<ResultDetailProps> = ({ fontSize }) => {
                  <Icon size={32} />
               </div>
               <h1 className={`text-2xl font-bold mb-1 ${textClass}`}>{label}</h1>
-              <p className="text-sm opacity-75 font-medium uppercase tracking-wider dark:text-slate-300">{sub}</p>
+              <p className="text-sm font-bold uppercase tracking-wider text-santri-gold">{sub}</p>
            </div>
         </div>
 
