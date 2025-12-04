@@ -1,6 +1,6 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import Toast from '../components/Toast';
 import { 
   ArrowLeft, 
   Sparkles, 
@@ -36,6 +36,11 @@ const ExplanationScreen: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [rawText, setRawText] = useState('');
   const [copied, setCopied] = useState(false);
+  const isSharing = useRef(false);
+
+  // Toast State
+  const [toast, setToast] = useState({ show: false, message: '' });
+  const showToast = (message: string) => setToast({ show: true, message });
 
   useEffect(() => {
     if (!query) {
@@ -98,10 +103,14 @@ const ExplanationScreen: React.FC = () => {
       : rawText;
     navigator.clipboard.writeText(text);
     setCopied(true);
+    showToast("Teks disalin ke clipboard");
     setTimeout(() => setCopied(false), 2000);
   };
 
   const handleShare = async () => {
+    if (isSharing.current) return;
+    isSharing.current = true;
+
     const text = data 
       ? `*${data.title}*\n\n${data.summary}\n\n${data.analysis}\n\nSumber: ${data.source}`
       : rawText;
@@ -115,17 +124,20 @@ const ExplanationScreen: React.FC = () => {
       } catch (err: any) {
         if (err.name !== 'AbortError') {
            handleCopy();
-           alert('Teks disalin ke clipboard.');
         }
+      } finally {
+        isSharing.current = false;
       }
     } else {
       handleCopy();
-      alert('Teks disalin ke clipboard.');
+      isSharing.current = false;
     }
   };
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 pb-24 font-sans">
+      <Toast message={toast.message} isVisible={toast.show} onClose={() => setToast(prev => ({ ...prev, show: false }))} />
+      
       {/* Header */}
       <div className="sticky top-0 z-30 bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800 shadow-sm px-4 py-3 flex items-center justify-between transition-colors">
         <div className="flex items-center gap-3">
