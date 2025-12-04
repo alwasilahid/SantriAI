@@ -22,7 +22,9 @@ import {
   Settings,
   User,
   Clock,
-  Tv
+  Tv,
+  LogOut,
+  Star
 } from 'lucide-react';
 import HistoryScreen from './HistoryScreen';
 
@@ -65,6 +67,9 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ fontSize }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [searchResults, setSearchResults] = useState<{ features: any[], history: any[] }>({ features: [], history: [] });
+  
+  // Exit Modal State
+  const [showExitModal, setShowExitModal] = useState(false);
 
   // Handle incoming navigation state (Scroll to history)
   useEffect(() => {
@@ -278,7 +283,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ fontSize }) => {
             </div>
 
           {/* HISTORY SECTION (Moved to Bottom) */}
-          <div ref={historyRef} className="mt-8 mb-8 border-t-2 border-slate-100 dark:border-slate-800 pt-6">
+          <div ref={historyRef} className="mt-8 mb-4 border-t-2 border-slate-100 dark:border-slate-800 pt-6">
             <h3 className="font-bold text-slate-800 dark:text-slate-200 text-lg mb-4 flex items-center gap-2">
               <HistoryIcon size={22} strokeWidth={3} className="text-santri-green dark:text-santri-gold" /> 
               Riwayat Aktivitas
@@ -286,8 +291,81 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ fontSize }) => {
             <HistoryScreen history={searchQuery ? filteredHistory : history} />
           </div>
 
+          {/* Selesai / Exit Button */}
+          <div className="mt-8 mb-4 flex justify-center">
+             <button 
+               onClick={() => setShowExitModal(true)}
+               className="flex items-center gap-2 text-slate-400 dark:text-slate-500 hover:text-red-500 dark:hover:text-red-400 font-bold text-sm transition-colors py-2 px-4 rounded-full hover:bg-red-50 dark:hover:bg-red-900/10"
+             >
+                <LogOut size={18} />
+                Selesai Belajar
+             </button>
+          </div>
+
         </div>
       </div>
+
+      {/* Exit Modal (Doa Penutup Majelis) */}
+      {showExitModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+           <div className="bg-white dark:bg-slate-900 w-full max-w-md rounded-3xl p-6 shadow-2xl relative animate-in zoom-in-95 duration-300 border-t-4 border-santri-green">
+              
+              <button 
+                onClick={() => setShowExitModal(false)}
+                className="absolute top-4 right-4 p-2 bg-slate-50 dark:bg-slate-800 rounded-full text-slate-400 hover:text-slate-600 transition-colors"
+              >
+                 <X size={20} />
+              </button>
+
+              <div className="text-center mb-6">
+                 <div className="w-16 h-16 bg-green-50 dark:bg-green-900/20 rounded-full flex items-center justify-center mx-auto mb-4 text-santri-green dark:text-santri-gold">
+                    <Star size={32} fill="currentColor" />
+                 </div>
+                 <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100">Doa Penutup Majelis</h2>
+                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Semoga ilmu yang didapat bermanfaat</p>
+              </div>
+
+              {/* Kafaratul Majelis */}
+              <div className="bg-[#FFF9E6] dark:bg-yellow-900/10 rounded-2xl p-5 border border-yellow-100 dark:border-yellow-900/30 mb-4">
+                 <p className="font-arabic text-2xl leading-loose text-center text-slate-800 dark:text-slate-100 mb-3" dir="rtl">
+                   سُبْحَانَكَ اللَّهُمَّ وَبِحَمْدِكَ، أَشْهَدُ أَنْ لَا إِلَهَ إِلَّا أَنْتَ، أَسْتَغْفِرُكَ وَأَتُوبُ إِلَيْكَ
+                 </p>
+                 <p className="text-xs text-center text-slate-600 dark:text-slate-400 italic leading-relaxed">
+                   "Maha Suci Engkau Ya Allah, dengan memuji-Mu, aku bersaksi bahwa tidak ada Tuhan selain Engkau, aku memohon ampunan dan bertaubat kepada-Mu."
+                 </p>
+              </div>
+
+              {/* Sapujagat (Optional but requested) */}
+              <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-4 border border-slate-100 dark:border-slate-700 mb-6">
+                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block text-center mb-2">Doa Sapu Jagat</span>
+                 <p className="font-arabic text-xl leading-loose text-center text-slate-700 dark:text-slate-200" dir="rtl">
+                   رَبَّنَا آتِنَا فِي الدُّنْيَا حَسَنَةً وَفِي الْآخِرَةِ حَسَنَةً وَقِنَا عَذَابَ النَّارِ
+                 </p>
+              </div>
+
+              <div className="flex gap-3">
+                 <button 
+                   onClick={() => setShowExitModal(false)}
+                   className="flex-1 py-3 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-xl font-bold text-sm hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                 >
+                   Kembali
+                 </button>
+                 <button 
+                   onClick={() => {
+                      setShowExitModal(false);
+                      // In a real app environment (Capacitor), we would call App.exitApp() here.
+                      // For web, we just close the modal as a symbolic "Finish".
+                   }}
+                   className="flex-1 py-3 bg-santri-green text-white rounded-xl font-bold text-sm shadow-lg shadow-green-200 dark:shadow-green-900/30 hover:bg-green-700 transition-colors"
+                 >
+                   Aamiin, Selesai
+                 </button>
+              </div>
+
+           </div>
+        </div>
+      )}
+
     </div>
   );
 };
