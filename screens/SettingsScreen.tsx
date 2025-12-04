@@ -59,7 +59,7 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ settings, onSaveSetting
 
         <div className="space-y-1">
             <button 
-              onClick={() => navigate('onNavigateToPrayerTimes')} 
+              onClick={() => navigate('/sholat')} 
               className="w-full flex items-center justify-between p-3 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-colors group"
             >
                 <div className="flex items-center gap-3">
@@ -70,6 +70,81 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ settings, onSaveSetting
                 </div>
                 <ChevronRight size={16} className="text-slate-300 dark:text-slate-600" />
             </button>
+package com.santripondok
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+
+@Composable
+fun AccountScreen(onNavigateToPrayerTimes: () -> Unit) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth() // Changed from fillMaxSize to allow other content below
+            .padding(16.dp)
+    ) {
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+            colors = CardDefaults.cardColors(containerColor = Color.White)
+        ) {
+            Column(modifier = Modifier.padding(8.dp)) {
+                AccountMenuItem(
+                    icon = R.drawable.ic_account_data_activity,
+                    title = "Data & Aktivitas",
+                    onClick = { /* TODO: Handle Data & Aktivitas click */ }
+                )
+                AccountMenuItem(
+                    icon = R.drawable.ic_account_prayer_schedule,
+                    title = "Jadwal Sholat & Adzan",
+                    onClick = onNavigateToPrayerTimes
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun AccountMenuItem(icon: Int, title: String, onClick: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(Color(0x11000000))
+                    .padding(8.dp)
+            ) {
+                Icon(painter = painterResource(id = icon), contentDescription = title, modifier = Modifier.size(24.dp))
+            }
+            Spacer(modifier = Modifier.width(16.dp))
+            Text(text = title, fontSize = 16.sp, fontWeight = FontWeight.Medium)
+        }
+        Icon(Icons.Default.ChevronRight, contentDescription = "Go to $title", tint = Color.Gray)
+    }
+}
 
             <button 
               onClick={() => navigate('/', { state: { tab: 'history' } })} 
