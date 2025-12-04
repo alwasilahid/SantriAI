@@ -27,7 +27,6 @@ import ExplanationScreen from './screens/ExplanationScreen';
 import CategoryBooksScreen from './screens/CategoryBooksScreen';
 import BookDetailScreen from './screens/BookDetailScreen';
 import InfoScreen from './screens/InfoScreen';
-import TvMakkahScreen from './screens/TvMakkahScreen';
 import { AppSettings } from './types';
 import { DEFAULT_SETTINGS } from './constants';
 import { initSupabase } from './services/supabaseService';
@@ -138,7 +137,6 @@ const App: React.FC = () => {
               <Route path="/sholat" element={<PrayerTimesScreen />} />
               <Route path="/biography" element={<BiographyScreen />} />
               <Route path="/explanation" element={<ExplanationScreen />} />
-              <Route path="/tv-mekkah" element={<TvMakkahScreen />} />
               
               {/* Info Routes */}
               <Route path="/info/:slug" element={<InfoScreen />} />
