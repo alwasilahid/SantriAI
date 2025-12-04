@@ -1,7 +1,7 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { TranslationResult } from '../types';
+import Toast from '../components/Toast';
 import { 
   Book, 
   GraduationCap, 
@@ -111,6 +111,11 @@ const ResultScreen: React.FC<ResultScreenProps> = ({ fontSize }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [textCopied, setTextCopied] = useState(false);
+  const isSharing = useRef(false);
+
+  // Toast State
+  const [toast, setToast] = useState({ show: false, message: '' });
+  const showToast = (message: string) => setToast({ show: true, message });
 
   // --- 1. INITIALIZE DATA ---
   useEffect(() => {
@@ -204,6 +209,9 @@ const ResultScreen: React.FC<ResultScreenProps> = ({ fontSize }) => {
   };
 
   const handleShare = async (title: string, text: string) => {
+    if (isSharing.current) return;
+    isSharing.current = true;
+
     const safeText = ensureString(text);
     if (navigator.share) {
       try {
@@ -211,12 +219,15 @@ const ResultScreen: React.FC<ResultScreenProps> = ({ fontSize }) => {
       } catch (err: any) { 
         if (err.name !== 'AbortError') {
             navigator.clipboard.writeText(safeText);
-            alert('Teks disalin ke clipboard.'); 
+            showToast('Teks disalin ke clipboard.'); 
         }
+      } finally {
+        isSharing.current = false;
       }
     } else {
       navigator.clipboard.writeText(safeText);
-      alert('Teks disalin ke clipboard');
+      showToast('Teks disalin ke clipboard');
+      isSharing.current = false;
     }
   };
 
@@ -230,6 +241,7 @@ const ResultScreen: React.FC<ResultScreenProps> = ({ fontSize }) => {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 pb-24 font-sans">
+        <Toast message={toast.message} isVisible={toast.show} onClose={() => setToast(prev => ({ ...prev, show: false }))} />
         
         {/* Header */}
         <div className="sticky top-0 z-30 bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800 shadow-sm px-4 py-3 flex items-center gap-3 transition-colors">
