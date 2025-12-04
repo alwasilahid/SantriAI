@@ -1,9 +1,9 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import { askReligiousQuery } from '../services/geminiService';
 import { getHadithBooks, getHadithRange } from '../services/hadithApiService';
 import { HadithBook, HadithDetail } from '../types';
+import Toast from '../components/Toast';
 import { 
   Search, 
   Loader2, 
@@ -61,6 +61,14 @@ const HadisScreen: React.FC = () => {
   // Local Search State (Inside Book)
   const [localSearchQuery, setLocalSearchQuery] = useState('');
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const isSharing = useRef(false);
+
+  // Toast State
+  const [toast, setToast] = useState({ show: false, message: '' });
+
+  const showToast = (message: string) => {
+    setToast({ show: true, message });
+  };
 
   // Handle Navigation State from Settings
   useEffect(() => {
@@ -168,6 +176,7 @@ const HadisScreen: React.FC = () => {
   const toggleBookmark = (hadith: HadithDetail, book: HadithBook) => {
     if (isBookmarked(book.id, hadith.number)) {
       setBookmarks(prev => prev.filter(b => !(b.bookId === book.id && b.number === hadith.number)));
+      showToast("Penanda dihapus");
     } else {
       const newBookmark: BookmarkHadith = {
         ...hadith,
@@ -176,11 +185,13 @@ const HadisScreen: React.FC = () => {
         savedAt: new Date().toISOString()
       };
       setBookmarks(prev => [newBookmark, ...prev]);
+      showToast("Hadis disimpan");
     }
   };
 
   const deleteBookmark = (bookId: string, hadithNumber: number) => {
     setBookmarks(prev => prev.filter(b => !(b.bookId === bookId && b.number === hadithNumber)));
+    showToast("Penanda dihapus");
   };
 
   // Copy & Share
@@ -194,6 +205,9 @@ const HadisScreen: React.FC = () => {
   };
 
   const handleShare = async (hadith: HadithDetail, bookName?: string) => {
+    if (isSharing.current) return;
+    isSharing.current = true;
+
     const name = bookName || activeBook?.name || "Hadis";
     const text = `${hadith.arab}\n\n${hadith.id}\n(${name} No. ${hadith.number})`;
     
@@ -206,12 +220,15 @@ const HadisScreen: React.FC = () => {
       } catch (e: any) {
         if (e.name !== 'AbortError') {
            handleCopy(hadith, bookName);
-           alert("Gagal membagikan, teks disalin ke clipboard.");
+           showToast("Teks disalin ke clipboard");
         }
+      } finally {
+        isSharing.current = false;
       }
     } else {
       handleCopy(hadith, bookName);
-      alert("Teks disalin ke clipboard");
+      showToast("Teks disalin ke clipboard");
+      isSharing.current = false;
     }
   };
 
@@ -262,6 +279,7 @@ const HadisScreen: React.FC = () => {
   if (!activeBook) {
     return (
       <div className="pb-24 pt-6 px-4 min-h-screen bg-slate-50 dark:bg-slate-950">
+        <Toast message={toast.message} isVisible={toast.show} onClose={() => setToast(prev => ({ ...prev, show: false }))} />
         
         {/* Header Section */}
         <div className="mb-6">
@@ -454,6 +472,7 @@ const HadisScreen: React.FC = () => {
   // --- RENDER READER VIEW (HADITH LIST) ---
   return (
     <div className="pb-24 pt-0 min-h-screen bg-slate-50 dark:bg-slate-950 relative">
+      <Toast message={toast.message} isVisible={toast.show} onClose={() => setToast(prev => ({ ...prev, show: false }))} />
       
       {/* Sticky Header */}
       <div className="sticky top-0 z-30 bg-santri-green text-white shadow-md pt-4 pb-14 px-4 transition-colors">
