@@ -37,11 +37,11 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ settings, onSaveSetting
     >
         <div className="flex items-center gap-3">
             <div className="text-slate-400 group-hover:text-santri-green transition-colors">
-                <Icon size={18} />
+                <Icon size={20} strokeWidth={2.5} />
             </div>
-            <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{label}</span>
+            <span className="text-sm font-bold text-slate-700 dark:text-slate-300">{label}</span>
         </div>
-        <ChevronRight size={16} className="text-slate-300 dark:text-slate-600" />
+        <ChevronRight size={18} strokeWidth={3} className="text-slate-300 dark:text-slate-600" />
     </button>
   );
 
@@ -52,9 +52,9 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ settings, onSaveSetting
       <div className="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-100 dark:border-slate-800 shadow-sm transition-colors animate-in fade-in slide-in-from-top-2 duration-300">
         <div className="flex items-center gap-3 mb-4">
           <div className="p-2 bg-orange-100 dark:bg-orange-900/30 rounded-lg text-orange-600 dark:text-orange-400">
-             <Activity size={20} />
+             <Activity size={22} strokeWidth={3} />
           </div>
-          <h2 className="font-semibold text-slate-800 dark:text-slate-100">Data & Aktivitas</h2>
+          <h2 className="font-bold text-slate-800 dark:text-slate-100">Data & Aktivitas</h2>
         </div>
 
         <div className="space-y-1">
@@ -64,87 +64,12 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ settings, onSaveSetting
             >
                 <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-full bg-green-50 dark:bg-green-900/20 flex items-center justify-center text-santri-green group-hover:bg-santri-green group-hover:text-white transition-colors">
-                        <Clock size={16} />
+                        <Clock size={18} strokeWidth={3} />
                     </div>
-                    <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Jadwal Sholat & Adzan</span>
+                    <span className="text-sm font-bold text-slate-700 dark:text-slate-300">Jadwal Sholat & Adzan</span>
                 </div>
-                <ChevronRight size={16} className="text-slate-300 dark:text-slate-600" />
+                <ChevronRight size={18} strokeWidth={3} className="text-slate-300 dark:text-slate-600" />
             </button>
-package com.santripondok
-
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ChevronRight
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-
-@Composable
-fun AccountScreen(onNavigateToPrayerTimes: () -> Unit) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth() // Changed from fillMaxSize to allow other content below
-            .padding(16.dp)
-    ) {
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White)
-        ) {
-            Column(modifier = Modifier.padding(8.dp)) {
-                AccountMenuItem(
-                    icon = R.drawable.ic_account_data_activity,
-                    title = "Data & Aktivitas",
-                    onClick = { /* TODO: Handle Data & Aktivitas click */ }
-                )
-                AccountMenuItem(
-                    icon = R.drawable.ic_account_prayer_schedule,
-                    title = "Jadwal Sholat & Adzan",
-                    onClick = onNavigateToPrayerTimes
-                )
-            }
-        }
-    }
-}
-
-@Composable
-fun AccountMenuItem(icon: Int, title: String, onClick: () -> Unit) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .padding(12.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Box(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(Color(0x11000000))
-                    .padding(8.dp)
-            ) {
-                Icon(painter = painterResource(id = icon), contentDescription = title, modifier = Modifier.size(24.dp))
-            }
-            Spacer(modifier = Modifier.width(16.dp))
-            Text(text = title, fontSize = 16.sp, fontWeight = FontWeight.Medium)
-        }
-        Icon(Icons.Default.ChevronRight, contentDescription = "Go to $title", tint = Color.Gray)
-    }
-}
 
             <button 
               onClick={() => navigate('/', { state: { tab: 'history' } })} 
@@ -152,11 +77,11 @@ fun AccountMenuItem(icon: Int, title: String, onClick: () -> Unit) {
             >
                 <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-full bg-orange-50 dark:bg-orange-900/20 flex items-center justify-center text-orange-500 group-hover:bg-orange-500 group-hover:text-white transition-colors">
-                        <History size={16} />
+                        <History size={18} strokeWidth={3} />
                     </div>
-                    <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Riwayat Ngaji</span>
+                    <span className="text-sm font-bold text-slate-700 dark:text-slate-300">Riwayat Ngaji</span>
                 </div>
-                <ChevronRight size={16} className="text-slate-300 dark:text-slate-600" />
+                <ChevronRight size={18} strokeWidth={3} className="text-slate-300 dark:text-slate-600" />
             </button>
 
             <button 
@@ -165,11 +90,11 @@ fun AccountMenuItem(icon: Int, title: String, onClick: () -> Unit) {
             >
                 <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-full bg-green-50 dark:bg-green-900/20 flex items-center justify-center text-santri-green group-hover:bg-santri-green group-hover:text-white transition-colors">
-                        <Bookmark size={16} />
+                        <Bookmark size={18} strokeWidth={3} />
                     </div>
-                    <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Penanda Al-Qur'an</span>
+                    <span className="text-sm font-bold text-slate-700 dark:text-slate-300">Penanda Al-Qur'an</span>
                 </div>
-                <ChevronRight size={16} className="text-slate-300 dark:text-slate-600" />
+                <ChevronRight size={18} strokeWidth={3} className="text-slate-300 dark:text-slate-600" />
             </button>
 
             <button 
@@ -178,11 +103,11 @@ fun AccountMenuItem(icon: Int, title: String, onClick: () -> Unit) {
             >
                 <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-full bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors">
-                        <Scroll size={16} />
+                        <Scroll size={18} strokeWidth={3} />
                     </div>
-                    <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Penanda Hadis</span>
+                    <span className="text-sm font-bold text-slate-700 dark:text-slate-300">Penanda Hadis</span>
                 </div>
-                <ChevronRight size={16} className="text-slate-300 dark:text-slate-600" />
+                <ChevronRight size={18} strokeWidth={3} className="text-slate-300 dark:text-slate-600" />
             </button>
 
             <button 
@@ -191,11 +116,11 @@ fun AccountMenuItem(icon: Int, title: String, onClick: () -> Unit) {
             >
                 <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-full bg-cyan-50 dark:bg-cyan-900/20 flex items-center justify-center text-cyan-600 group-hover:bg-cyan-600 group-hover:text-white transition-colors">
-                        <HeartHandshake size={16} />
+                        <HeartHandshake size={18} strokeWidth={3} />
                     </div>
-                    <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Penanda Doa</span>
+                    <span className="text-sm font-bold text-slate-700 dark:text-slate-300">Penanda Doa</span>
                 </div>
-                <ChevronRight size={16} className="text-slate-300 dark:text-slate-600" />
+                <ChevronRight size={18} strokeWidth={3} className="text-slate-300 dark:text-slate-600" />
             </button>
         </div>
       </div>
@@ -204,63 +129,63 @@ fun AccountMenuItem(icon: Int, title: String, onClick: () -> Unit) {
       <div className="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-100 dark:border-slate-800 shadow-sm transition-colors">
         <div className="flex items-center gap-3 mb-4">
           <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg text-purple-600 dark:text-purple-400">
-             {localSettings.theme === 'dark' ? <Moon size={20} /> : <Sun size={20} />}
+             {localSettings.theme === 'dark' ? <Moon size={22} strokeWidth={3} /> : <Sun size={22} strokeWidth={3} />}
           </div>
-          <h2 className="font-semibold text-slate-800 dark:text-slate-100">Tampilan</h2>
+          <h2 className="font-bold text-slate-800 dark:text-slate-100">Tampilan</h2>
         </div>
         
         {/* Dark Mode Toggle */}
         <div className="grid grid-cols-2 gap-3 mb-6">
            <button 
              onClick={() => handleChange('theme', 'light')}
-             className={`p-3 rounded-xl border flex items-center justify-center gap-2 transition-all ${
+             className={`p-3 rounded-xl border-2 flex items-center justify-center gap-2 transition-all font-bold ${
                localSettings.theme === 'light'
                  ? 'bg-green-50 border-santri-green text-santri-green'
                  : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'
              }`}
            >
-              <Sun size={18} /> Light
+              <Sun size={20} strokeWidth={3} /> Light
            </button>
            <button 
              onClick={() => handleChange('theme', 'dark')}
-             className={`p-3 rounded-xl border flex items-center justify-center gap-2 transition-all ${
+             className={`p-3 rounded-xl border-2 flex items-center justify-center gap-2 transition-all font-bold ${
                localSettings.theme === 'dark'
                  ? 'bg-slate-800 border-santri-green text-santri-gold'
                  : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-400 dark:hover:bg-slate-700'
              }`}
            >
-              <Moon size={18} /> Dark
+              <Moon size={20} strokeWidth={3} /> Dark
            </button>
         </div>
 
         {/* Font Selector */}
         <div className="mb-6">
-           <label className="text-sm font-medium text-slate-600 dark:text-slate-400 mb-2 block flex items-center gap-2">
-             <Type size={16} /> Jenis Font Arab
+           <label className="text-sm font-bold text-slate-600 dark:text-slate-400 mb-2 block flex items-center gap-2">
+             <Type size={18} strokeWidth={3} /> Jenis Font Arab
            </label>
            <div className="space-y-2">
               {FONTS.map(font => (
                 <button
                   key={font.id}
                   onClick={() => handleChange('arabicFont', font.id)}
-                  className={`w-full p-3 rounded-xl border flex items-center justify-between transition-all ${
+                  className={`w-full p-3 rounded-xl border-2 flex items-center justify-between transition-all ${
                     localSettings.arabicFont === font.id
                     ? 'bg-green-50 dark:bg-green-900/20 border-santri-green text-santri-green dark:text-santri-gold'
                     : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700'
                   }`}
                 >
                    <div className="text-left">
-                      <span className="text-xs font-semibold block mb-1">{font.name}</span>
+                      <span className="text-xs font-bold block mb-1">{font.name}</span>
                       <span className="text-xl" style={{ fontFamily: font.family }}>بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</span>
                    </div>
-                   {localSettings.arabicFont === font.id && <Check size={18} />}
+                   {localSettings.arabicFont === font.id && <Check size={20} strokeWidth={3} />}
                 </button>
               ))}
            </div>
         </div>
 
         <div>
-           <label className="text-sm font-medium text-slate-600 dark:text-slate-400 mb-2 block">Ukuran Font ({localSettings.fontSize}px)</label>
+           <label className="text-sm font-bold text-slate-600 dark:text-slate-400 mb-2 block">Ukuran Font ({localSettings.fontSize}px)</label>
            <input 
              type="range" 
              min="12" 
@@ -277,9 +202,9 @@ fun AccountMenuItem(icon: Int, title: String, onClick: () -> Unit) {
       <div className="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-100 dark:border-slate-800 shadow-sm transition-colors">
         <div className="flex items-center gap-3 mb-4">
            <div className="p-2 bg-slate-100 dark:bg-slate-800 rounded-lg text-slate-600 dark:text-slate-400">
-            <Info size={20} />
+            <Info size={22} strokeWidth={3} />
           </div>
-          <h2 className="font-semibold text-slate-800 dark:text-slate-100">Informasi & Bantuan</h2>
+          <h2 className="font-bold text-slate-800 dark:text-slate-100">Informasi & Bantuan</h2>
         </div>
 
         <div className="space-y-1">
@@ -295,13 +220,13 @@ fun AccountMenuItem(icon: Int, title: String, onClick: () -> Unit) {
       <button
         disabled={!isDirty}
         onClick={handleSave}
-        className={`w-full py-3.5 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all ${
+        className={`w-full py-3.5 rounded-xl font-bold flex items-center justify-center gap-2 transition-all ${
           isDirty 
             ? 'bg-santri-green text-white shadow-lg shadow-green-200 dark:shadow-green-900/30 active:scale-[0.98]' 
             : 'bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed'
         }`}
       >
-        <Save size={20} />
+        <Save size={20} strokeWidth={3} />
         Simpan Pengaturan
       </button>
 
