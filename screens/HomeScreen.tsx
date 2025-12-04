@@ -1,12 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { getPrayerTimes, getCityName } from '../services/prayerService';
-import { PrayerData } from '../types';
 import { useHistory } from '../contexts/HistoryContext';
 import { 
   Sparkles, 
   History as HistoryIcon, 
-  MapPin,
   GraduationCap,
   Brain,
   Activity, 
@@ -56,28 +53,6 @@ const SEARCHABLE_FEATURES = [
   { icon: Settings, label: "Pengaturan", color: "bg-slate-100 text-slate-600 border-slate-200", path: "/settings" },
 ];
 
-const HIJRI_MONTHS_ID: Record<string, string> = {
-  "Muharram": "Muharram",
-  "Safar": "Safar",
-  "Rabi' al-Awwal": "Rabiul Awal",
-  "Rabi' al-Thani": "Rabiul Akhir",
-  "Jumada al-Ula": "Jumadil Awal",
-  "Jumada al-Akhirah": "Jumadil Akhir",
-  "Rajab": "Rajab",
-  "Sha'ban": "Sya'ban",
-  "Ramadan": "Ramadhan",
-  "Shawwal": "Syawal",
-  "Dhu al-Qi'dah": "Dzulkaidah",
-  "Dhu al-Hijjah": "Dzulhijjah",
-  // Fallbacks
-  "Rabi al-Awwal": "Rabiul Awal",
-  "Rabi al-Thani": "Rabiul Akhir",
-  "Jumada al-Awwal": "Jumadil Awal",
-  "Jumada al-Thani": "Jumadil Akhir",
-  "Dhul Qidah": "Dzulkaidah",
-  "Dhul Hijjah": "Dzulhijjah"
-};
-
 const HomeScreen: React.FC<HomeScreenProps> = ({ fontSize }) => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -85,12 +60,6 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ fontSize }) => {
   
   // Use History Context
   const { history } = useHistory();
-
-  // Prayer State
-  const [prayerData, setPrayerData] = useState<PrayerData | null>(null);
-  const [locationName, setLocationName] = useState('Jakarta');
-  const [nextPrayer, setNextPrayer] = useState<{ name: string, time: string, diff: number } | null>(null);
-  const [countdown, setCountdown] = useState('');
   
   // Search State
   const [searchQuery, setSearchQuery] = useState('');
@@ -137,98 +106,6 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ fontSize }) => {
       setIsSearching(false);
   };
 
-  // --- Prayer Data Fetching ---
-  useEffect(() => {
-    const initPrayerData = async () => {
-      // Default Jakarta
-      let lat = -6.2088;
-      let lng = 106.8456;
-
-      if ("geolocation" in navigator) {
-        try {
-          const position = await new Promise<GeolocationPosition>((resolve, reject) => {
-            navigator.geolocation.getCurrentPosition(resolve, reject);
-          });
-          lat = position.coords.latitude;
-          lng = position.coords.longitude;
-          const city = await getCityName(lat, lng);
-          setLocationName(city);
-        } catch (e) {
-          console.log("Geolocation denied, using default");
-        }
-      }
-
-      const data = await getPrayerTimes(lat, lng);
-      setPrayerData(data);
-    };
-
-    initPrayerData();
-  }, []);
-
-  // --- Countdown Logic ---
-  useEffect(() => {
-    if (!prayerData) return;
-
-    // Helper to clean time string "04:30 (WIB)" -> "04:30"
-    const cleanTime = (t: string) => t.replace(/\s*\(.*?\)\s*/g, '').trim();
-
-    const interval = setInterval(() => {
-      const now = new Date();
-      const currentTimeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
-      
-      const prayers = [
-        { name: 'SUBUH', time: cleanTime(prayerData.timings.Fajr) },
-        { name: 'DZUHUR', time: cleanTime(prayerData.timings.Dhuhr) },
-        { name: 'ASHAR', time: cleanTime(prayerData.timings.Asr) },
-        { name: 'MAGHRIB', time: cleanTime(prayerData.timings.Maghrib) },
-        { name: 'ISYA', time: cleanTime(prayerData.timings.Isha) },
-      ];
-
-      // Find next prayer
-      let upcoming = prayers.find(p => p.time > currentTimeStr);
-      
-      // If no upcoming prayer today, it's Subuh tomorrow
-      if (!upcoming) {
-        upcoming = prayers[0]; 
-      }
-
-      setNextPrayer({ ...upcoming, diff: 0 }); 
-
-      // Calculate Countdown string
-      const [hStr, mStr] = upcoming.time.split(':');
-      const h = parseInt(hStr, 10);
-      const m = parseInt(mStr, 10);
-
-      if (isNaN(h) || isNaN(m)) return;
-
-      const target = new Date();
-      target.setHours(h, m, 0, 0);
-      
-      // If target time is earlier than now, it means it's tomorrow's Subuh
-      if (target <= now) {
-         target.setDate(target.getDate() + 1);
-      }
-
-      const diffMs = target.getTime() - now.getTime();
-      
-      if (diffMs < 0) {
-          setCountdown("00:00:00");
-          return;
-      }
-
-      const diffH = Math.floor(diffMs / (1000 * 60 * 60));
-      const diffM = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-      const diffS = Math.floor((diffMs % (1000 * 60)) / 1000);
-
-      // Tight spacing format: 06:06:53
-      setCountdown(`${diffH.toString().padStart(2, '0')}:${diffM.toString().padStart(2, '0')}:${diffS.toString().padStart(2, '0')}`);
-
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [prayerData]);
-
-
   const handleFeatureClick = (item: typeof FEATURE_MENU[0]) => {
     if (item.path) {
       if (item.path.startsWith('http')) {
@@ -240,8 +117,6 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ fontSize }) => {
       alert('Fitur akan segera hadir!');
     }
   };
-
-  const getIndoHijriMonth = (en: string) => HIJRI_MONTHS_ID[en] || en;
 
   // Filter history based on search query
   const filteredHistory = history.filter(item => {
@@ -256,71 +131,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ fontSize }) => {
   return (
     <div className="pb-24 pt-0 min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950">
       
-      <div className="animate-in fade-in slide-in-from-top-4 duration-500">
-          {/* PRAYER DASHBOARD WIDGET */}
-          <div 
-            onClick={() => navigate('/sholat')}
-            className="bg-santri-green dark:bg-santri-green-dark text-white shadow-lg mb-0 cursor-pointer active:opacity-90 transition-opacity"
-          >
-            
-            {/* Prayer Times Row */}
-            <div className="grid grid-cols-5 text-center border-b border-white/10">
-              {[
-                { label: 'SUBUH', time: prayerData?.timings.Fajr || '--:--' },
-                { label: 'DZUHUR', time: prayerData?.timings.Dhuhr || '--:--' },
-                { label: 'ASHAR', time: prayerData?.timings.Asr || '--:--' },
-                { label: 'MAGHRIB', time: prayerData?.timings.Maghrib || '--:--' },
-                { label: 'ISYA', time: prayerData?.timings.Isha || '--:--' },
-              ].map((p, i) => {
-                 // Clean display time
-                 const displayTime = p.time.replace(/\s*\(.*?\)\s*/g, '');
-                 const isNext = p.label === nextPrayer?.name;
-                 
-                 return (
-                  <div key={i} className={`py-2 pt-5 flex flex-col items-center justify-center transition-colors ${isNext ? 'bg-santri-gold text-santri-green' : ''}`}>
-                    <span className={`text-[10px] uppercase font-bold mb-0.5 ${isNext ? 'text-santri-green' : 'text-green-50 opacity-80'}`}>{p.label}</span>
-                    <span className={`text-sm ${isNext ? 'font-black text-santri-green' : 'font-bold text-white'}`}>{displayTime}</span>
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Info Row */}
-            <div className="flex justify-between items-center px-4 py-1 bg-santri-green dark:bg-santri-green-dark">
-                <div className="flex items-center gap-2 text-xs font-bold text-white">
-                  <MapPin size={16} strokeWidth={3} className="text-santri-gold" />
-                  {locationName}
-                </div>
-                <div className="text-xs font-bold text-santri-gold flex items-center gap-1">
-                  <span>
-                    {prayerData?.date.hijri.day} {getIndoHijriMonth(prayerData?.date.hijri.month.en || '')} {prayerData?.date.hijri.year} H
-                  </span>
-                  <ArrowRight size={14} strokeWidth={3} />
-                </div>
-            </div>
-
-            {/* Countdown Bar - UPDATED LAYOUT */}
-            <div className="bg-santri-green-dark dark:bg-black/20 px-4 py-2 flex justify-center items-center gap-4 border-t border-white/10">
-                <div className="flex items-center gap-2">
-                  <div className="text-santri-gold animate-pulse">
-                    <Activity size={18} strokeWidth={3} /> 
-                  </div>
-                  <span className="text-xs font-bold tracking-widest uppercase text-white/90">
-                      MENUJU {nextPrayer?.name || 'SHOLAT'}
-                  </span>
-                </div>
-                
-                {/* Right Side: Countdown + WIB */}
-                <div className="flex items-center gap-2">
-                    <span className="font-mono text-xl font-black text-santri-gold tracking-tight">
-                      {countdown || "00:00:00"}
-                    </span>
-                    <span className="bg-white/20 text-white text-[10px] font-bold px-1.5 py-0.5 rounded">WIB</span>
-                </div>
-            </div>
-          </div>
-      </div>
-
+      {/* Main Content */}
       <div className="px-4 pt-6">
         <div className="animate-in fade-in slide-in-from-left-4 duration-300">
           
