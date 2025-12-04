@@ -1,10 +1,10 @@
-
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
 import { askReligiousQuery } from '../services/geminiService';
 import { TranslationResult } from '../types';
 import { useHistory } from '../contexts/HistoryContext';
+import Toast from '../components/Toast';
 import { 
   ArrowLeft, Search, Copy, Check, Share2, 
   BookHeart, ChevronDown, ChevronUp, RefreshCw, AlertCircle, Quote, Sparkles, Loader2, Bookmark, Trash2
@@ -36,6 +36,7 @@ const DoaScreen: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>('Semua');
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const isSharing = useRef(false);
   
   // State untuk Data Fetching
   const [doaCollection, setDoaCollection] = useState<DoaItem[]>([]);
@@ -50,6 +51,10 @@ const DoaScreen: React.FC = () => {
     const saved = localStorage.getItem('santriai_doa_bookmarks');
     return saved ? JSON.parse(saved) : [];
   });
+
+  // Toast State
+  const [toast, setToast] = useState({ show: false, message: '' });
+  const showToast = (message: string) => setToast({ show: true, message });
 
   // Handle incoming navigation state (e.g. from Settings)
   useEffect(() => {
@@ -68,8 +73,10 @@ const DoaScreen: React.FC = () => {
     const exists = bookmarks.some(b => b.id === item.id);
     if (exists) {
       setBookmarks(prev => prev.filter(b => b.id !== item.id));
+      showToast("Penanda dihapus");
     } else {
       setBookmarks(prev => [item, ...prev]);
+      showToast("Doa disimpan");
     }
   };
 
@@ -171,12 +178,23 @@ const DoaScreen: React.FC = () => {
     setTimeout(() => setCopiedId(null), 2000);
   };
 
-  const handleShare = (item: DoaItem) => {
+  const handleShare = async (item: DoaItem) => {
+    if (isSharing.current) return;
+    isSharing.current = true;
+
     const text = `*${item.title}*\n\n${item.arabic}\n\n${item.latin}\n\n"${item.translation}"\n${item.source ? `(${item.source})` : ''}\n\n(Sumber: Aplikasi Bedah Kitab)`;
     if (navigator.share) {
-      navigator.share({ title: item.title, text: text }).catch(console.error);
+      try {
+        await navigator.share({ title: item.title, text: text });
+      } catch (e) {
+         console.error(e);
+      } finally {
+        isSharing.current = false;
+      }
     } else {
       handleCopy(text, item.id);
+      showToast("Teks disalin ke clipboard");
+      isSharing.current = false;
     }
   };
 
@@ -225,6 +243,8 @@ const DoaScreen: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#FDFBF7] dark:bg-gray-950 pb-32 flex flex-col">
+      <Toast message={toast.message} isVisible={toast.show} onClose={() => setToast(prev => ({ ...prev, show: false }))} />
+      
       <div className="sticky top-0 z-30 bg-[#FDFBF7]/95 dark:bg-gray-950/95 backdrop-blur-md border-b border-gray-200 dark:border-gray-800 px-4 py-4 shadow-sm">
          <div className="max-w-3xl mx-auto flex items-center gap-3">
             <button onClick={handleBack} className="p-2 -ml-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors">
