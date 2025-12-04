@@ -59,7 +59,7 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ settings, onSaveSetting
 
         <div className="space-y-1">
             <button 
-              onClick={() => navigate('/sholat')} 
+              onClick={() => navigate('onNavigateToPrayerTimes')} 
               className="w-full flex items-center justify-between p-3 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-colors group"
             >
                 <div className="flex items-center gap-3">
