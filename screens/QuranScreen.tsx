@@ -1,10 +1,10 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useAudio } from '../contexts/AudioContext';
 import { useHistory } from '../contexts/HistoryContext';
 import { getAllSurahs, getSurahDetail, getTafsir } from '../services/quranApiService';
 import { JUZ_MAPPING, JUZ_INFO } from '../constants';
+import Toast from '../components/Toast';
 import { 
   Search, 
   Loader2, 
@@ -16,12 +16,9 @@ import {
   Bookmark, 
   Copy, 
   Sparkles,
-  AlignLeft,
   Trash2,
   Share2,
-  Info,
   X,
-  Layers,
   ToggleLeft,
   ToggleRight,
   Palette,
@@ -53,6 +50,7 @@ const QuranScreen: React.FC = () => {
   const scrollToAyahRef = useRef<number | null>(null);
   const [isTajwidMode, setIsTajwidMode] = useState(false);
   const [copiedId, setCopiedId] = useState<number | null>(null);
+  const isSharing = useRef(false);
   
   // AI/Tafsir Modal State
   const [modalData, setModalData] = useState<{
@@ -65,6 +63,10 @@ const QuranScreen: React.FC = () => {
   }>({
     show: false, title: '', content: '', loading: false, isAi: false
   });
+
+  // Toast State
+  const [toast, setToast] = useState({ show: false, message: '' });
+  const showToast = (message: string) => setToast({ show: true, message });
 
   // Handle incoming navigation state
   useEffect(() => {
@@ -190,6 +192,7 @@ const QuranScreen: React.FC = () => {
 
     if (exists) {
       setBookmarks(prev => prev.filter(b => b.id !== id));
+      showToast("Penanda dihapus");
     } else {
       const newBookmark: BookmarkItem = {
         id,
@@ -199,6 +202,7 @@ const QuranScreen: React.FC = () => {
         savedAt: new Date().toISOString()
       };
       setBookmarks(prev => [newBookmark, ...prev]);
+      showToast("Ayat disimpan");
     }
   };
 
@@ -208,6 +212,7 @@ const QuranScreen: React.FC = () => {
 
   const handleDeleteBookmark = (id: string) => {
      setBookmarks(prev => prev.filter(b => b.id !== id));
+     showToast("Penanda dihapus");
   };
 
   const openBookmark = (item: BookmarkItem) => {
@@ -225,6 +230,9 @@ const QuranScreen: React.FC = () => {
   };
 
   const handleShare = async (ayah: Ayah) => {
+    if (isSharing.current) return;
+    isSharing.current = true;
+
     const text = `${ayah.arab}\n\n${ayah.text}\n(QS. ${surahDetail?.name_latin}: ${ayah.number})`;
     const title = `QS. ${surahDetail?.name_latin}: ${ayah.number}`;
     
@@ -238,12 +246,15 @@ const QuranScreen: React.FC = () => {
         if (error.name !== 'AbortError') {
            console.error('Share failed:', error);
            handleCopy(ayah);
-           alert('Gagal membagikan, teks disalin ke clipboard.');
+           showToast('Gagal membagikan, teks disalin.');
         }
+      } finally {
+        isSharing.current = false;
       }
     } else {
       handleCopy(ayah);
-      alert('Teks disalin ke clipboard');
+      showToast('Teks disalin ke clipboard');
+      isSharing.current = false;
     }
   };
 
@@ -334,6 +345,8 @@ const QuranScreen: React.FC = () => {
   if (view === 'list') {
     return (
       <div className="pb-24 pt-6 px-4 min-h-screen bg-slate-50 dark:bg-slate-950">
+        <Toast message={toast.message} isVisible={toast.show} onClose={() => setToast(prev => ({ ...prev, show: false }))} />
+        
         {/* Tabs */}
         <div className="flex bg-white dark:bg-slate-900 rounded-xl p-1 mb-6 shadow-sm border border-slate-100 dark:border-slate-800 sticky top-4 z-10 transition-colors">
           {['surah', 'juz', 'bookmark'].map((tab) => (
@@ -440,7 +453,7 @@ const QuranScreen: React.FC = () => {
                         <button onClick={() => {
                            const text = `${item.ayah.arab}\n\n${item.ayah.text}\n(QS. ${item.surahName}: ${item.ayah.number})`;
                            navigator.clipboard.writeText(text);
-                           alert("Disalin");
+                           showToast("Disalin");
                         }} className="text-slate-400 hover:text-slate-600">
                            <Copy size={16} />
                         </button>
@@ -473,6 +486,7 @@ const QuranScreen: React.FC = () => {
   // --- RENDER DETAIL VIEW ---
   return (
     <div className="pb-32 pt-0 min-h-screen bg-slate-50 dark:bg-slate-950 relative">
+      <Toast message={toast.message} isVisible={toast.show} onClose={() => setToast(prev => ({ ...prev, show: false }))} />
       
       {/* Sticky Detail Header */}
       <div className="sticky top-0 z-30 bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800 shadow-sm px-4 py-3 flex items-center justify-between transition-colors">
