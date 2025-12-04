@@ -233,7 +233,7 @@ const DoaScreen: React.FC = () => {
 
         navigate('/result', { state: { result: translationResult } });
     } catch (e) {
-        alert("Gagal menganalisis doa. Silakan coba lagi.");
+        showToast("Gagal menganalisis doa. Periksa koneksi internet");
     } finally {
         setAnalyzingId(null);
     }
