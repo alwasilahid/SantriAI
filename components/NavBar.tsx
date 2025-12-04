@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Home, Book, BookOpen, Scroll, Settings } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -20,11 +21,20 @@ const NavBar: React.FC = () => {
           : 'text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300'
       }`}
     >
-      <Icon size={22} strokeWidth={isActive(path) ? 2.5 : 2} />
-      <span className="text-[9px] font-medium">{label}</span>
+      <Icon size={24} strokeWidth={isActive(path) ? 3 : 2.5} />
+      <span className={`text-[10px] ${isActive(path) ? 'font-bold' : 'font-medium'}`}>{label}</span>
     </button>
   );
 
+  return (
+    <nav className="fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-900 border-t-2 border-slate-100 dark:border-slate-800 px-2 py-3 flex justify-around items-center z-50 safe-area-bottom shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] dark:shadow-none transition-colors duration-300">
+      <NavItem path="/" icon={Home} label="Beranda" />
+      <NavItem path="/kitab" icon={Book} label="Kitab" />
+      <NavItem path="/quran" icon={BookOpen} label="Al-Quran" />
+      <NavItem path="/hadis" icon={Scroll} label="Hadis" />
+      <NavItem path="/settings" icon={Settings} label="Akun" />
+    </nav>
+  );
 };
 
 export default NavBar;
