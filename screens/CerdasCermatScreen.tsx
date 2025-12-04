@@ -1,6 +1,6 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import Toast from '../components/Toast';
 import { 
   ArrowLeft, BrainCircuit, Trophy, CheckCircle, XCircle, 
   Loader2, AlertCircle, Sparkles, Flame, RefreshCcw, LogOut, Shuffle, PenTool, Lightbulb, Check, X, Send, ThumbsUp, AlertTriangle
@@ -48,6 +48,10 @@ const QuizView: React.FC<QuizViewProps> = ({ onBack }) => {
 
   // State untuk Popup Hasil (Feedback)
   const [feedbackModal, setFeedbackModal] = useState<'CORRECT' | 'INCORRECT' | null>(null);
+
+  // Toast State
+  const [toast, setToast] = useState({ show: false, message: '' });
+  const showToast = (message: string) => setToast({ show: true, message });
 
   const handleBack = () => {
     if (onBack) {
@@ -146,7 +150,7 @@ const QuizView: React.FC<QuizViewProps> = ({ onBack }) => {
         setFeedbackModal('INCORRECT');
       }
     } catch (e) {
-      alert("Gagal mengoreksi jawaban. Silakan coba lagi.");
+      showToast("Gagal mengoreksi. Periksa koneksi internet");
     } finally {
       setIsChecking(false);
     }
@@ -187,6 +191,7 @@ const QuizView: React.FC<QuizViewProps> = ({ onBack }) => {
 
   return (
     <div className="min-h-screen bg-[#FDFBF7] dark:bg-gray-950 pb-32 flex flex-col animate-fade-in">
+      <Toast message={toast.message} isVisible={toast.show} onClose={() => setToast(prev => ({ ...prev, show: false }))} />
       
       {/* Sticky Header */}
       <div className="sticky top-0 z-30 bg-[#FDFBF7]/95 dark:bg-gray-950/95 backdrop-blur-md border-b border-gray-200 dark:border-gray-800 px-4 py-4 shadow-sm">
