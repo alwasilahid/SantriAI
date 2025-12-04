@@ -1,6 +1,6 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import Toast from '../components/Toast';
 import { 
   ArrowLeft, 
   User, 
@@ -13,8 +13,8 @@ import {
   PenTool, 
   Star, 
   Clock, 
-  MapPin,
-  Users,
+  MapPin, 
+  Users, 
   Scroll,
   Calendar
 } from 'lucide-react';
@@ -45,6 +45,11 @@ const BiographyScreen: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
   const [rawText, setRawText] = useState('');
+  const isSharing = useRef(false);
+
+  // Toast State
+  const [toast, setToast] = useState({ show: false, message: '' });
+  const showToast = (message: string) => setToast({ show: true, message });
 
   useEffect(() => {
     if (!author) {
@@ -113,11 +118,15 @@ const BiographyScreen: React.FC = () => {
     const textToCopy = `*${bioData.fullName}*\n${bioData.titles}\n\n${bioData.intro}\n\nKarya: ${bioData.works?.join(', ') || '-'}`;
     navigator.clipboard.writeText(textToCopy);
     setCopied(true);
+    showToast("Teks disalin ke clipboard");
     setTimeout(() => setCopied(false), 2000);
   };
 
   const handleShare = async () => {
     if (!bioData) return;
+    if (isSharing.current) return;
+    isSharing.current = true;
+
     const textToShare = `*${bioData.fullName}*\n${bioData.titles}\n\n${bioData.intro}\n\nSelengkapnya di SantriAI.`;
 
     if (navigator.share) {
@@ -129,17 +138,19 @@ const BiographyScreen: React.FC = () => {
       } catch (err: any) {
         if (err.name !== 'AbortError') {
            handleCopy();
-           alert('Teks disalin ke clipboard.');
         }
+      } finally {
+        isSharing.current = false;
       }
     } else {
       handleCopy();
-      alert('Teks disalin ke clipboard.');
+      isSharing.current = false;
     }
   };
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 pb-24 font-sans">
+      <Toast message={toast.message} isVisible={toast.show} onClose={() => setToast(prev => ({ ...prev, show: false }))} />
       
       {/* Header */}
       <div className="sticky top-0 z-30 bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800 shadow-sm px-4 py-3 flex items-center justify-between transition-colors">
