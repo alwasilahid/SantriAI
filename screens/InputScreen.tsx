@@ -4,6 +4,7 @@ import { translateText, scanImage } from '../services/geminiService';
 import { TranslationResult } from '../types';
 import { useHistory } from '../contexts/HistoryContext';
 import { v4 as uuidv4 } from 'uuid';
+import Toast from '../components/Toast';
 import { 
   ArrowLeft, 
   Loader2, 
@@ -86,6 +87,10 @@ const InputScreen: React.FC<InputScreenProps> = ({ fontSize }) => {
   const recognitionRef = useRef<any>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
 
+  // Toast State
+  const [toast, setToast] = useState({ show: false, message: '' });
+  const showToast = (message: string) => setToast({ show: true, message });
+
   // Focus textarea when switching tabs
   useEffect(() => {
     if (textareaRef.current) {
@@ -120,7 +125,7 @@ const InputScreen: React.FC<InputScreenProps> = ({ fontSize }) => {
 
   const toggleListening = () => {
     if (!recognitionRef.current) {
-        alert("Browser Anda tidak mendukung fitur suara.");
+        showToast("Browser tidak mendukung fitur suara");
         return;
     }
 
@@ -145,7 +150,7 @@ const InputScreen: React.FC<InputScreenProps> = ({ fontSize }) => {
       setInputText(prev => prev + (prev ? '\n' : '') + extractedText);
     } catch (e) {
       console.error(e);
-      alert("Gagal memindai teks dari gambar.");
+      showToast("Gagal memindai teks dari gambar");
     } finally {
       setIsOcrProcessing(false);
     }
@@ -166,7 +171,7 @@ const InputScreen: React.FC<InputScreenProps> = ({ fontSize }) => {
         }, 100);
     } catch (err) {
         console.error("Camera error:", err);
-        alert("Gagal membuka kamera. Pastikan izin diberikan.");
+        showToast("Gagal membuka kamera");
         setIsCameraOpen(false);
     }
   };
@@ -221,7 +226,7 @@ const InputScreen: React.FC<InputScreenProps> = ({ fontSize }) => {
           processImage(base64Data, file.type);
         } catch (e) {
           console.error(e);
-          alert("Gagal membaca file.");
+          showToast("Gagal membaca file");
         }
       };
       event.target.value = ''; // Reset input so same file can be selected again
@@ -309,7 +314,7 @@ const InputScreen: React.FC<InputScreenProps> = ({ fontSize }) => {
       navigate('/result', { state: { result: newResult } });
 
     } catch (error) {
-      alert("Gagal menerjemahkan. Periksa koneksi atau API Key.");
+      showToast("Gagal menerjemahkan. Periksa internet");
     } finally {
       setLoading(false);
     }
@@ -321,6 +326,7 @@ const InputScreen: React.FC<InputScreenProps> = ({ fontSize }) => {
 
   return (
     <div className="bg-slate-50 dark:bg-slate-950 flex flex-col overflow-hidden h-[100dvh]">
+       <Toast message={toast.message} isVisible={toast.show} onClose={() => setToast(prev => ({ ...prev, show: false }))} />
        
        {/* Camera Overlay */}
        {isCameraOpen && (
